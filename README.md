@@ -32,6 +32,8 @@ Kır/koyma dokunuşu chunk yeniden meshlemesini sonraki kareye erteler. Ayarlar 
 Düşük/Ultra profilleri seçilebilir; gerçek cihaz FPS ölçümü yapılmadığı için sayısal performans iddiası yoktur.
 Samsung SM-S200 / SM-X200 / SM-T200 gibi zayıf tabletlerde oyun kendi kendini **Düşük** profiline zorlar:
 9 chunk, 24 FPS, 0.60 çözünürlük, sis/bulut/parçacık/normal harita kapalı ve tek düşman.
+Spawn artık chunk ortasındaki açık bir alanda yapılır; eski kayıt blok içindeyse oyuncu otomatik kurtarılır.
+Duraklatma menüsündeki **Güvenli Noktaya Dön** ile istediğiniz zaman spawn'a dönebilirsiniz.
 
 ## Çalıştırma
 

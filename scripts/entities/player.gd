@@ -36,6 +36,7 @@ var action_cooldown := 0.0
 var stealth_time := 0.0
 var swim_time := 0.0
 var fall_speed := 0.0
+var _stuck_timer := 0.0
 var _step_timer := 0.0
 var _rig_state := "idle"
 
@@ -183,6 +184,7 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if not active or world == null:
 		return
+	_unstuck_guard(delta)
 	var axis := (move_axis + kb_axis).limit_length(1.0)
 	var fwd := Vector3(-sin(yaw), 0, -cos(yaw))
 	var right := Vector3(cos(yaw), 0, -sin(yaw))
@@ -271,8 +273,32 @@ func flush_edits(refresh: bool = true) -> void:
 		elif action == "place":
 			_place_block()
 
+func _unstuck_guard(delta: float) -> void:
+	var gx := int(floor(global_position.x))
+	var gy := int(floor(global_position.y + 0.06))
+	var gz := int(floor(global_position.z))
+	var embedded := false
+	for y in range(gy, gy + 3):
+		if BlockDefs.is_solid(world.get_block(gx, y, gz)):
+			embedded = true
+			break
+	if not embedded:
+		_stuck_timer = 0.0
+		return
+	_stuck_timer += delta
+	if _stuck_timer >= 0.4:
+		global_position = world.find_spawn()
+		velocity = Vector3.ZERO
+		_stuck_timer = 0.0
+
 func _refresh_target() -> void:
-	target = world.raycast(camera.global_position, -camera.global_transform.basis.z, 6.5)
+	var origin := camera.global_position
+	var cx := int(floor(origin.x))
+	var cy := int(floor(origin.y))
+	var cz := int(floor(origin.z))
+	if BlockDefs.is_solid(world.get_block(cx, cy, cz)):
+		origin = global_position + Vector3(0, 1.2, 0)
+	target = world.raycast(origin, -camera.global_transform.basis.z, 6.5)
 	if target.get("hit", false):
 		var b: Vector3i = target["block"]
 		highlight.visible = true

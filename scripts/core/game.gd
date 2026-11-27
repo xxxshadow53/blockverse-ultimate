@@ -83,6 +83,10 @@ func _build() -> void:
 	else:
 		player.restore(saved)
 		environment.time_of_day = float(saved.get("time", environment.time_of_day))
+	# Eski kayıt blok içindeyse oyuncuyu güvenli spawn'a taşı; envanter korunur.
+	if not world.is_spawn_clear(player.global_position):
+		player.global_position = world.find_spawn()
+		hud.toast("Güvenli spawn noktasına taşındın")
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(true)
 	started = true
@@ -115,6 +119,14 @@ func _process(delta: float) -> void:
 			save_game()
 	_update_quest()
 	hud.tick(delta, player, world, environment, _fps_smooth, _quest)
+
+## Duraklatma menüsünden/blok içi kalmadan kurtarma.
+func teleport_to_safe_spawn() -> void:
+	if player == null or world == null:
+		return
+	player.global_position = world.find_spawn()
+	player.velocity = Vector3.ZERO
+	hud.toast("Güvenli spawn noktasına taşındın")
 
 func _apply_dynamic_resolution(fps: float) -> void:
 	if DisplayServer.get_name() == "headless":
@@ -330,12 +342,13 @@ func _build_pause() -> void:
 	pause_layer.layer = 40
 	pause_layer.visible = false
 	add_child(pause_layer)
-	var p := _make_panel(pause_layer, "DURAKLATILDI", 480, 430)
+	var p := _make_panel(pause_layer, "DURAKLATILDI", 480, 500)
 	_menu_button(p, "Devam Et", 90, func(): toggle_pause())
 	_menu_button(p, "Envanter / Üretim", 152, func(): toggle_inventory())
 	_menu_button(p, "Ayarlar", 214, func(): settings_layer.visible = true)
 	_menu_button(p, "Kaydet", 276, Callable(self, "_save_and_toast"))
 	_menu_button(p, "Kaydet ve Ana Menü", 338, func(): save_game(); exit_requested.emit())
+	_menu_button(p, "Güvenli Noktaya Dön", 400, Callable(self, "teleport_to_safe_spawn"))
 
 func _build_inventory() -> void:
 	inventory_layer = CanvasLayer.new()

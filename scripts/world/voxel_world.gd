@@ -168,15 +168,59 @@ func save_all() -> void:
 	for c in chunks.values():
 		(c as Chunk).save(seed)
 
+## Spawn noktası chunk köşesi değil, yüklü chunk'ın ortasıdır.
+## Kapsülün kaplayacağı 3 blok yüksekliği boyunca katı blok olmadığı doğrulanır.
 func find_spawn() -> Vector3:
-	var gx := 0
-	var gz := 0
-	for y in range(VoxelUtil.WORLD_H - 1, 0, -1):
-		var id := get_block(gx, y, gz)
-		if BlockDefs.is_solid(id) and get_block(gx, y + 1, gz) == BlockDefs.AIR and get_block(gx, y + 2, gz) == BlockDefs.AIR:
-			if id != BlockDefs.WATER and id != BlockDefs.LAVA:
+	var center := int(VoxelUtil.CS * 0.5)
+	var chunk := get_chunk(0, 0) as Chunk
+	var candidates: Array = [[center, center]]
+	for radius in range(1, 7):
+		for dz in range(-radius, radius + 1):
+			for dx in range(-radius, radius + 1):
+				if maxi(absi(dx), absi(dz)) != radius:
+					continue
+				candidates.append([center + dx, center + dz])
+	for item in candidates:
+		var lx := int(item[0])
+		var lz := int(item[1])
+		if lx < 2 or lz < 2 or lx >= VoxelUtil.CS - 2 or lz >= VoxelUtil.CS - 2:
+			continue
+		var gx := lx
+		var gz := lz
+		var surface := chunk.surface_at(lx, lz) if chunk != null else VoxelUtil.SEA_LEVEL
+		var high := mini(surface + 4, VoxelUtil.WORLD_H - 5)
+		var low := maxi(2, surface - 4)
+		for y in range(high, low - 1, -1):
+			var id := get_block(gx, y, gz)
+			if BlockDefs.is_solid(id) and id != BlockDefs.WATER and id != BlockDefs.LAVA and _spawn_column_clear(gx, y, gz):
 				return Vector3(float(gx) + 0.5, float(y + 1), float(gz) + 0.5)
-	return Vector3(0.5, 70.0, 0.5)
+	# Son çare: güvenli bir sütun açıldığında oyuncuyu oraya bırak.
+	var fx := center
+	var fz := center
+	var fy := maxi(VoxelUtil.SEA_LEVEL + 24, 2)
+	for y in range(fy, fy + 4):
+		set_block(fx, y, fz, BlockDefs.AIR)
+	set_block(fx, fy - 1, fz, BlockDefs.STONE)
+	return Vector3(float(fx) + 0.5, float(fy), float(fz) + 0.5)
+
+func _spawn_column_clear(gx: int, ground_y: int, gz: int) -> bool:
+	for y in range(ground_y + 1, ground_y + 4):
+		if BlockDefs.is_solid(get_block(gx, y, gz)):
+			return false
+	return true
+
+## Kayıtlı konum veya herhangi bir konum için kapsül çakışması kontrolü.
+func is_spawn_clear(pos: Vector3) -> bool:
+	var gx := int(floor(pos.x))
+	var gy := int(floor(pos.y + 0.06))
+	var gz := int(floor(pos.z))
+	if gy < 1 or gy >= VoxelUtil.WORLD_H - 3:
+		return false
+	for y in range(gy, gy + 3):
+		if BlockDefs.is_solid(get_block(gx, y, gz)):
+			return false
+	var below := get_block(gx, gy - 1, gz)
+	return BlockDefs.is_solid(below) and below != BlockDefs.WATER and below != BlockDefs.LAVA
 
 ## Voksel DDA ışın testi: blok koordinatı ve yüzey normali döndürür.
 func raycast(origin: Vector3, direction: Vector3, max_distance: float) -> Dictionary:

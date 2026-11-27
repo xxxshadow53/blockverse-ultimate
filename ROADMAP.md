@@ -24,6 +24,7 @@ Doğrulanmadan tamamlandığı iddia edilen hiçbir özellik burada listelenmez.
   0.85 çözünürlük ölçeği, kapalı gölge/bloom, 5 Hz ışık güncellemesi ve kuyruklu kır/koyma.
   Gerçek cihaz FPS/termal ölçümü hâlâ yapılmadı; iddia edilmiyor.
 - SM-S200 / SM-X200 / SM-T200 algılandığında üst profiller kapatılır ve 9 chunk / 24 FPS / 0.60 ölçeklik hafif profil uygulanır.
+- Spawn güvenli alan kontrolüyle yapılır; blok içinde kalan kayıtlı oyuncu otomatik kurtarılır ve duraklatma menüsünden güvenli noktaya dönülebilir.
 
 ## Planlanan (henüz yapılmadı)
 

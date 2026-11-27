@@ -17,8 +17,8 @@ func _ready() -> void:
 	else:
 		_check(game.world.chunks.size() > 0, "Chunk üretimi (%d chunk)" % game.world.chunks.size())
 		var p := game.player.global_position
-		_check(p.y > -20.0 and p.y < 200.0, "Oyuncu spawn konumu: %s" % str(p))
-		_check(game.world.get_block(int(p.x), int(p.y) - 1, int(p.z)) != BlockDefs.AIR, "Spawn altı katı")
+		_check(p.y > -20.0 and p.y < 200.0 and p.x > 2.0 and p.z > 2.0 and game.world.is_spawn_clear(p), "Güvenli spawn konumu: %s" % str(p))
+		_check(game.world.get_block(int(p.x), int(floor(p.y + 0.06)) - 1, int(p.z)) != BlockDefs.AIR, "Spawn altı katı")
 		_check(game.hud != null and game.controls != null, "HUD ve mobil kontroller")
 		_test_blocks()
 		_test_combat()
