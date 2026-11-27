@@ -21,11 +21,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Gerekli SDK paketleri
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1"
+        # GitHub-hosted runner'larda Android SDK ve sdkmanager hazır gelir.
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
 
       - name: Godot 4.7.2-stable (Linux)
         run: |
