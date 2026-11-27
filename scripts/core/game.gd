@@ -52,6 +52,7 @@ func _build() -> void:
 	world.name = "VoxelWorld"
 	add_child(world)
 	world.setup(world_seed, int(GameSettings.get_v("render_distance", 5)))
+	world.ensure_spawn_chunk()
 	player = Player.new()
 	player.name = "Player"
 	add_child(player)

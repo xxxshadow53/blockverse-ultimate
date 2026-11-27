@@ -104,6 +104,18 @@ func get_chunk(gx: int, gz: int) -> Chunk:
 	var key := VoxelUtil.chunk_key(VoxelUtil.world_to_chunk(gx), VoxelUtil.world_to_chunk(gz))
 	return chunks.get(key, null) as Chunk
 
+## Mobil cihazlarda arka plan üretimi gecikebildiği için spawn chunk'ını senkron üretir.
+func ensure_spawn_chunk() -> void:
+	if get_chunk(0, 0) != null:
+		return
+	var holder: Array = [null]
+	_thread_generate(0, 0, holder)
+	_mutex.lock()
+	var data: Variant = holder[0]
+	_mutex.unlock()
+	if data is Dictionary:
+		_finish_chunk(0, 0, data)
+
 func get_block(gx: int, gy: int, gz: int) -> int:
 	if gy < 0 or gy >= VoxelUtil.WORLD_H:
 		return BlockDefs.AIR

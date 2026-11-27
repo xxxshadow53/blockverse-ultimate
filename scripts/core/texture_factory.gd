@@ -2,11 +2,12 @@ extends Node
 
 ## Çalışma zamanında prosedürel PBR doku atlasları ve shader materyalleri üretir.
 ## Harici telifli varlık kullanılmaz; tüm dokular matematiksel olarak oluşturulur.
-const TILE := 32
+const TILE := 64
 const ATLAS_COLS := 16
 const ATLAS_ROWS := 16
 
 var atlas: ImageTexture
+var normal_atlas: ImageTexture
 var solid_material: StandardMaterial3D
 var foliage_material: ShaderMaterial
 var water_material: ShaderMaterial
@@ -15,7 +16,9 @@ var particle_texture: ImageTexture
 var _time := 0.0
 
 func _ready() -> void:
-	atlas = _build_atlas()
+	var textures := _build_atlas()
+	atlas = textures[0]
+	normal_atlas = textures[1]
 	solid_material = _make_solid_material()
 	foliage_material = _make_foliage_material()
 	water_material = _make_water_material()
@@ -36,7 +39,9 @@ func set_reflection(enabled: bool) -> void:
 func _make_solid_material() -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.albedo_texture = atlas
-	m.roughness = 0.86
+	m.normal_texture = normal_atlas
+	m.normal_scale = 0.85
+	m.roughness = 0.82
 	m.metallic = 0.03
 	return m
 
@@ -98,30 +103,36 @@ void fragment() {
 	m.set_shader_parameter("reflection", 0.35)
 	return m
 
-func _build_atlas() -> ImageTexture:
-	var img := Image.create(TILE * ATLAS_COLS, TILE * ATLAS_ROWS, false, Image.FORMAT_RGBA8)
+func _build_atlas() -> Array:
+	var size := TILE * ATLAS_COLS
+	var img := Image.create(size, TILE * ATLAS_ROWS, false, Image.FORMAT_RGBA8)
+	var normal_img := Image.create(size, TILE * ATLAS_ROWS, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.1, 0.1, 0.1, 1))
+	normal_img.fill(Color(0.5, 0.5, 1.0, 1))
 	for id in range(BlockDefs.COUNT):
 		for face in range(3):
-			_paint_tile(img, id, face, id * 3 + face)
+			_paint_tile(img, normal_img, id, face, id * 3 + face)
 	img.generate_mipmaps()
-	return ImageTexture.create_from_image(img)
+	normal_img.generate_mipmaps()
+	return [ImageTexture.create_from_image(img), ImageTexture.create_from_image(normal_img)]
 
 func _tile_origin(index: int) -> Vector2i:
 	return Vector2i((index % ATLAS_COLS) * TILE, (index / ATLAS_COLS) * TILE)
 
-func _paint_tile(img: Image, id: int, face: int, index: int) -> void:
+func _paint_tile(img: Image, normal_img: Image, id: int, face: int, index: int) -> void:
 	var origin := _tile_origin(index)
 	var base: Color = BlockDefs.color_of(id)
 	var pattern := BlockDefs.pattern_of(id)
 	var noise := FastNoiseLite.new()
 	noise.seed = 1000 + id * 31 + face * 7
-	noise.frequency = 0.11
+	noise.frequency = 0.085
+	noise.fractal_octaves = 3
+	noise.fractal_gain = 0.55
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 77 + id * 613 + face * 41
 	var spots: Array[Vector2] = []
-	for i in range(7):
-		spots.append(Vector2(rng.randf_range(4, TILE - 4), rng.randf_range(4, TILE - 4)))
+	for i in range(9):
+		spots.append(Vector2(rng.randf_range(5, TILE - 5), rng.randf_range(5, TILE - 5)))
 	var ore_color := Color(0.12, 0.12, 0.13)
 	match id:
 		BlockDefs.IRON_ORE: ore_color = Color(0.78, 0.62, 0.44)
@@ -129,58 +140,82 @@ func _paint_tile(img: Image, id: int, face: int, index: int) -> void:
 		BlockDefs.DIAMOND_ORE: ore_color = Color(0.35, 0.92, 0.95)
 		BlockDefs.CRYSTAL_ORE: ore_color = Color(0.42, 0.86, 1.0)
 		BlockDefs.STAR_ORE: ore_color = Color(0.62, 0.70, 1.0)
+	var heights := PackedFloat32Array()
+	heights.resize(TILE * TILE)
 	for y in range(TILE):
 		for x in range(TILE):
 			var n := noise.get_noise_2d(float(x), float(y)) * 0.5 + 0.5
+			var grain := (rng.randf() - 0.5) * 0.055
 			var c := base
 			match pattern:
 				"grass":
 					if face == BlockDefs.F_TOP:
-						c = base * (0.78 + n * 0.42)
+						c = base * (0.74 + n * 0.48 + grain)
 					elif face == BlockDefs.F_BOTTOM:
-						c = Color(0.40, 0.29, 0.18) * (0.82 + n * 0.3)
+						c = Color(0.40, 0.29, 0.18) * (0.78 + n * 0.34 + grain)
 					else:
-						var edge := 7 + int(n * 4)
-						c = Color(0.40, 0.29, 0.18) * (0.8 + n * 0.35)
+						var edge := 14 + int(n * 8)
+						c = Color(0.40, 0.29, 0.18) * (0.76 + n * 0.4 + grain)
 						if y < edge:
-							c = base * (0.75 + n * 0.45)
+							c = base * (0.72 + n * 0.5 + grain)
 				"speckle":
-					c = base * (0.78 + n * 0.4)
-					if rng.randf() < 0.035:
-						c = base * 1.35
+					c = base * (0.74 + n * 0.44 + grain)
+					if rng.randf() < 0.045:
+						c = base * 1.4
 				"stripe":
-					var s := 0.75 + 0.32 * absf(sin(float(x) * 0.55 + n * 1.4))
+					var s := 0.72 + 0.36 * absf(sin(float(x) * 0.28 + n * 1.6)) + grain
 					c = base * s
 				"ore":
-					c = Color(0.40, 0.41, 0.43) * (0.8 + n * 0.35)
+					c = Color(0.40, 0.41, 0.43) * (0.76 + n * 0.4 + grain)
 					for p in spots:
-						if Vector2(x, y).distance_to(p) < 3.4:
-							c = ore_color * (0.8 + n * 0.3)
+						var dist := Vector2(x, y).distance_to(p)
+						if dist < 6.8:
+							c = ore_color * (0.78 + n * 0.34)
+							if dist < 2.2:
+								c = c * 1.25
 				"crystal":
-					var streak := absf(sin(float(x + y) * 0.45)) * 0.25
-					c = base * (0.72 + n * 0.5 + streak)
+					var streak := absf(sin(float(x + y) * 0.23)) * 0.3
+					c = base * (0.68 + n * 0.55 + streak + grain)
 				"glass":
-					c = Color(0.55, 0.82, 0.92) * (0.86 + n * 0.2)
-					if x < 2 or y < 2 or x > TILE - 3 or y > TILE - 3:
+					c = Color(0.55, 0.82, 0.92) * (0.84 + n * 0.24)
+					if x < 4 or y < 4 or x > TILE - 5 or y > TILE - 5:
 						c = Color(0.82, 0.94, 1.0)
+					elif x + y > TILE * 0.6 and x + y < TILE * 0.72:
+						c = Color(0.88, 0.97, 1.0)
 				"emblem":
 					if id == BlockDefs.BRICK:
-						var row := y / 8
-						var offset := 0 if row % 2 == 0 else 8
-						if y % 8 == 0 or (x + offset) % 16 == 0:
-							c = Color(0.32, 0.30, 0.28)
+						var row := y / 16
+						var offset := 0 if row % 2 == 0 else 16
+						if y % 16 == 0 or (x + offset) % 32 == 0:
+							c = Color(0.30, 0.28, 0.26)
 						else:
-							c = base * (0.82 + n * 0.32)
+							c = base * (0.78 + n * 0.36 + grain)
 					else:
-						c = base * (0.82 + n * 0.34)
-						if x % 12 < 2 or y % 14 < 2:
-							c = base * 0.55
+						c = base * (0.78 + n * 0.38 + grain)
+						if x % 24 < 3 or y % 28 < 3:
+							c = base * 0.52
 				"glow":
-					c = base * (0.9 + n * 0.45) + Color(0.12, 0.05, 0.02, 0)
+					c = base * (0.86 + n * 0.5 + grain)
 				_:
-					c = base * (0.8 + n * 0.38)
+					c = base * (0.76 + n * 0.42 + grain)
+			# Hafif kenar gölgesi blokların ayrışmasını belirginleştirir.
+			if x < 2 or y < 2 or x >= TILE - 2 or y >= TILE - 2:
+				c *= 0.9
 			c.a = 1.0
+			heights[y * TILE + x] = clampf(c.r * 0.3 + c.g * 0.59 + c.b * 0.11, 0.0, 1.0)
 			img.set_pixel(origin.x + x, origin.y + y, c)
+	# Yükseklikten basit tangent-space normal harita üret (komşu blok sızıntısı yok).
+	for y in range(TILE):
+		for x in range(TILE):
+			var l := heights[y * TILE + maxi(x - 1, 0)]
+			var r := heights[y * TILE + mini(x + 1, TILE - 1)]
+			var u := heights[maxi(y - 1, 0) * TILE + x]
+			var d := heights[mini(y + 1, TILE - 1) * TILE + x]
+			var nx := (l - r) * 3.2
+			var ny := (u - d) * 3.2
+			var inv_len := 1.0 / sqrt(nx * nx + ny * ny + 1.0)
+			var nc := Color(nx * inv_len * 0.5 + 0.5, ny * inv_len * 0.5 + 0.5, inv_len * 0.5 + 0.5, 1.0)
+			normal_img.set_pixel(origin.x + x, origin.y + y, nc)
 
 func _build_cloud_texture() -> ImageTexture:
 	var img := Image.create(256, 256, false, Image.FORMAT_RGBA8)
