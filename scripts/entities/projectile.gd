@@ -53,11 +53,7 @@ func setup(game_ref: Node, world_ref: VoxelWorld, origin: Vector3, dir: Vector3,
 	if kind == "arrow" or kind == "bone":
 		mi.rotation = Vector3(PI * 0.5, 0, 0)
 	add_child(mi)
-	var light := OmniLight3D.new()
-	light.light_color = color
-	light.light_energy = 1.4
-	light.omni_range = 4.0
-	add_child(light)
+	# Işık yerine emissive materyal kullanılır; mermi başına dinamik ışık pahalıdır.
 	look_at(global_position + direction, Vector3.UP)
 
 func _physics_process(delta: float) -> void:

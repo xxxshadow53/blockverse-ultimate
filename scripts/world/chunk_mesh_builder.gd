@@ -150,7 +150,7 @@ static func _row_same(mask: PackedInt32Array, j: int, w: int, k: int, dim_u: int
 static func _uv(index: int, u: float, v: float) -> Vector2:
 	var cols := 16.0
 	var rows := 16.0
-	var pad := 0.002
+	var pad := 0.004
 	var tx := float(index % 16) / cols
 	var ty := float(index / 16) / rows
 	var step := 1.0 / cols

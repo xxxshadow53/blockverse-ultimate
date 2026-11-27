@@ -75,7 +75,7 @@ func _build() -> void:
 	AudioLibrary.play_ambient(true, true, false)
 	await get_tree().process_frame
 	var waited := 0
-	while world.get_chunk(0, 0) == null and waited < 600:
+	while world.get_chunk(0, 0) == null and waited < 30:
 		await get_tree().process_frame
 		waited += 1
 	if not load_existing or saved.is_empty() or int(saved.get("seed", -1)) != world_seed:
@@ -85,7 +85,6 @@ func _build() -> void:
 		environment.time_of_day = float(saved.get("time", environment.time_of_day))
 	player.velocity = Vector3.ZERO
 	player.set_physics_process(true)
-	await get_tree().create_timer(0.35).timeout
 	started = true
 	world_ready.emit()
 	if load_existing:
@@ -102,11 +101,13 @@ func _process(delta: float) -> void:
 		_fps_smooth = float(_frames) / _frame_timer
 		_frame_timer = 0.0
 		_frames = 0
+		if bool(GameSettings.get_v("dynamic_resolution", true)):
+			_apply_dynamic_resolution(_fps_smooth)
 	if not paused and not inventory_open and not game_over:
 		environment.follow(player.global_position)
 		_spawn_timer -= delta
 		if _spawn_timer <= 0.0:
-			_spawn_timer = 3.2
+			_spawn_timer = 9.0 if OS.get_name() == "Android" else 3.2
 			_try_spawn()
 		_save_timer -= delta
 		if _save_timer <= 0.0:
@@ -114,6 +115,18 @@ func _process(delta: float) -> void:
 			save_game()
 	_update_quest()
 	hud.tick(delta, player, world, environment, _fps_smooth, _quest)
+
+func _apply_dynamic_resolution(fps: float) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	var vp := tree.root
+	var target := clampf(float(GameSettings.p("res", 0.85)), 0.5, 1.0)
+	var current := vp.scaling_3d_scale
+	if fps < 24.0 and current > 0.55:
+		vp.scaling_3d_scale = maxf(0.55, current - 0.05)
+	elif fps > 45.0 and current < target:
+		vp.scaling_3d_scale = minf(target, current + 0.03)
 
 func _update_quest() -> void:
 	if _kills >= 5 and _mined < 20:

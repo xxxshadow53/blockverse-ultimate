@@ -31,7 +31,7 @@ func _build_showcase() -> void:
 	e.background_color = Color(0.025, 0.035, 0.075)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.28, 0.34, 0.48)
-	e.glow_enabled = true
+	e.glow_enabled = false
 	e.glow_intensity = 0.7
 	e.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.environment = e
@@ -246,7 +246,7 @@ func _character_select() -> void:
 	s.add_child(container)
 	var vp := SubViewport.new()
 	vp.size = Vector2i(460, 475)
-	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	vp.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	container.add_child(vp)
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
@@ -254,7 +254,7 @@ func _character_select() -> void:
 	e.background_color = Color(0.04, 0.05, 0.10)
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.35, 0.40, 0.55)
-	e.glow_enabled = true
+	e.glow_enabled = false
 	env.environment = e
 	vp.add_child(env)
 	var light := DirectionalLight3D.new()

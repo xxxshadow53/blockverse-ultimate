@@ -68,6 +68,9 @@ func _physics_process(delta: float) -> void:
 	var to_player := player.global_position - global_position
 	to_player.y = 0.0
 	var dist := to_player.length()
+	if dist > 45.0:
+		# Uzak düşmanların AI'sı çalışmaz; yaklaşınca kaldığı yerden devam eder.
+		return
 	if dist > 75.0:
 		queue_free()
 		return

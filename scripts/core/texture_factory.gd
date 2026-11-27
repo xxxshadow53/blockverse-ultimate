@@ -105,29 +105,52 @@ void fragment() {
 
 func _build_atlas() -> Array:
 	var size := TILE * ATLAS_COLS
-	var img := Image.create(size, TILE * ATLAS_ROWS, false, Image.FORMAT_RGBA8)
-	var normal_img := Image.create(size, TILE * ATLAS_ROWS, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0.1, 0.1, 0.1, 1))
-	normal_img.fill(Color(0.5, 0.5, 1.0, 1))
+	var height := TILE * ATLAS_ROWS
+	var pixels := size * height
+	# set_pixel yerine tek seferde ham bayt yazımı: 1M GDScript çağrısı kalkar.
+	var albedo_data := PackedByteArray()
+	albedo_data.resize(pixels * 4)
+	var normal_data := PackedByteArray()
+	normal_data.resize(pixels * 4)
+	for i in range(pixels):
+		var o := i * 4
+		albedo_data[o] = 26
+		albedo_data[o + 1] = 26
+		albedo_data[o + 2] = 26
+		albedo_data[o + 3] = 255
+		normal_data[o] = 128
+		normal_data[o + 1] = 128
+		normal_data[o + 2] = 255
+		normal_data[o + 3] = 255
 	for id in range(BlockDefs.COUNT):
 		for face in range(3):
-			_paint_tile(img, normal_img, id, face, id * 3 + face)
+			_paint_tile(albedo_data, normal_data, size, id, face, id * 3 + face)
+	var img := Image.create(size, height, false, Image.FORMAT_RGBA8)
+	img.set_data(size, height, false, Image.FORMAT_RGBA8, albedo_data)
 	img.generate_mipmaps()
+	var normal_img := Image.create(size, height, false, Image.FORMAT_RGBA8)
+	normal_img.set_data(size, height, false, Image.FORMAT_RGBA8, normal_data)
 	normal_img.generate_mipmaps()
 	return [ImageTexture.create_from_image(img), ImageTexture.create_from_image(normal_img)]
+
+func _write_rgba(data: PackedByteArray, offset: int, c: Color) -> void:
+	data[offset] = clampi(int(c.r * 255.0), 0, 255)
+	data[offset + 1] = clampi(int(c.g * 255.0), 0, 255)
+	data[offset + 2] = clampi(int(c.b * 255.0), 0, 255)
+	data[offset + 3] = 255
 
 func _tile_origin(index: int) -> Vector2i:
 	return Vector2i((index % ATLAS_COLS) * TILE, (index / ATLAS_COLS) * TILE)
 
-func _paint_tile(img: Image, normal_img: Image, id: int, face: int, index: int) -> void:
+func _paint_tile(albedo_data: PackedByteArray, normal_data: PackedByteArray, atlas_size: int, id: int, face: int, index: int) -> void:
 	var origin := _tile_origin(index)
 	var base: Color = BlockDefs.color_of(id)
 	var pattern := BlockDefs.pattern_of(id)
 	var noise := FastNoiseLite.new()
 	noise.seed = 1000 + id * 31 + face * 7
 	noise.frequency = 0.085
-	noise.fractal_octaves = 3
-	noise.fractal_gain = 0.55
+	noise.fractal_octaves = 2
+	noise.fractal_gain = 0.5
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 77 + id * 613 + face * 41
 	var spots: Array[Vector2] = []
@@ -203,7 +226,8 @@ func _paint_tile(img: Image, normal_img: Image, id: int, face: int, index: int) 
 				c *= 0.9
 			c.a = 1.0
 			heights[y * TILE + x] = clampf(c.r * 0.3 + c.g * 0.59 + c.b * 0.11, 0.0, 1.0)
-			img.set_pixel(origin.x + x, origin.y + y, c)
+			var off := ((origin.y + y) * atlas_size + origin.x + x) * 4
+			_write_rgba(albedo_data, off, c)
 	# Yükseklikten basit tangent-space normal harita üret (komşu blok sızıntısı yok).
 	for y in range(TILE):
 		for x in range(TILE):
@@ -215,7 +239,8 @@ func _paint_tile(img: Image, normal_img: Image, id: int, face: int, index: int) 
 			var ny := (u - d) * 3.2
 			var inv_len := 1.0 / sqrt(nx * nx + ny * ny + 1.0)
 			var nc := Color(nx * inv_len * 0.5 + 0.5, ny * inv_len * 0.5 + 0.5, inv_len * 0.5 + 0.5, 1.0)
-			normal_img.set_pixel(origin.x + x, origin.y + y, nc)
+			var noff := ((origin.y + y) * atlas_size + origin.x + x) * 4
+			_write_rgba(normal_data, noff, nc)
 
 func _build_cloud_texture() -> ImageTexture:
 	var img := Image.create(256, 256, false, Image.FORMAT_RGBA8)

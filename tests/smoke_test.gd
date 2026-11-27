@@ -63,12 +63,14 @@ func _test_blocks() -> void:
 	game.player.target = {"hit": true, "block": Vector3i(bx, by, bz), "normal": Vector3i(0, 1, 0), "id": original, "distance": 2.0}
 	game.player.action_cooldown = 0.0
 	game.player.press("break")
+	game.player.flush_edits(false)
 	_check(game.world.get_block(bx, by, bz) == BlockDefs.AIR, "Blok kırma")
 	game.player.target = {"hit": true, "block": Vector3i(bx, by - 1, bz), "normal": Vector3i(0, 1, 0), "id": game.world.get_block(bx, by - 1, bz), "distance": 2.0}
 	game.player.action_cooldown = 0.0
 	game.player.inventory.select(0)
 	var before := game.player.inventory.selected_count()
 	game.player.press("place")
+	game.player.flush_edits(false)
 	_check(game.player.inventory.selected_count() == before - 1, "Blok koyma")
 
 func _test_combat() -> void:

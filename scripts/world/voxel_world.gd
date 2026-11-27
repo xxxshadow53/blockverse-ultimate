@@ -6,7 +6,7 @@ extends Node3D
 signal chunk_loaded(cx: int, cz: int)
 
 var seed: int
-var render_distance: int = 5
+var render_distance: int = 3
 var chunks: Dictionary = {}
 var pending: Dictionary = {}
 var player: Node3D
@@ -14,19 +14,21 @@ var loaded_triangles := 0
 var _update_timer := 0.0
 var _generator_cache: WorldGenerator
 var _mutex := Mutex.new()
+var _dirty: Dictionary = {}
 
 func setup(world_seed: int, distance: int) -> void:
 	seed = world_seed
-	render_distance = clampi(distance, 1, 14)
+	render_distance = clampi(distance, 1, 6)
 	_generator_cache = WorldGenerator.new(seed)
 
 func _process(delta: float) -> void:
-	TextureFactory.process(delta)
 	_update_timer -= delta
 	if _update_timer > 0.0:
 		return
-	_update_timer = 0.2
+	_update_timer = 0.35
+	# Kare başına en fazla bir chunk bitirilir; dokunma/input kuyruğu bloke olmaz.
 	_collect_tasks()
+	_process_dirty()
 	if player:
 		_stream()
 
@@ -38,19 +40,28 @@ func _stream() -> void:
 	var pending_keys: Dictionary = {}
 	for info in pending.values():
 		pending_keys[String(info["key"])] = true
+	var missing: Array = []
 	for dz in range(-render_distance, render_distance + 1):
 		for dx in range(-render_distance, render_distance + 1):
 			if dx * dx + dz * dz > render_distance * render_distance + render_distance:
 				continue
 			var key := VoxelUtil.chunk_key(ccx + dx, ccz + dz)
 			desired[key] = true
-			if not chunks.has(key) and not pending_keys.has(key) and pending.size() < 8:
-				_start_task(ccx + dx, ccz + dz, key)
+			if chunks.has(key) or pending_keys.has(key):
+				continue
+			missing.append([dx * dx + dz * dz, ccx + dx, ccz + dz, key])
+	# Önce oyuncuya en yakın chunk'lar üretilir; arka planda en fazla 2 iş bekler.
+	missing.sort_custom(func(a, b): return int(a[0]) < int(b[0]))
+	for item in missing:
+		if pending.size() >= 2:
+			break
+		_start_task(int(item[1]), int(item[2]), String(item[3]))
 	for key in chunks.keys():
 		if not desired.has(key):
 			var c: Chunk = chunks[key]
 			c.save(seed)
 			chunks.erase(key)
+			_dirty.erase(key)
 			c.free_chunk()
 			loaded_triangles = 0
 			for ch in chunks.values():
@@ -73,7 +84,6 @@ func _collect_tasks() -> void:
 		if not WorkerThreadPool.is_task_completed(task):
 			continue
 		var info: Dictionary = pending[task]
-		WorkerThreadPool.wait_for_task_completion(task)
 		pending.erase(task)
 		_mutex.lock()
 		var data: Variant = (info["holder"] as Array)[0]
@@ -87,34 +97,46 @@ func _collect_tasks() -> void:
 			var ccz := VoxelUtil.world_to_chunk(int(floor(p.z)))
 			if absi(int(info["cx"]) - ccx) > render_distance + 1 or absi(int(info["cz"]) - ccz) > render_distance + 1:
 				continue
-			_finish_chunk(str(info["cx"]).to_int(), str(info["cz"]).to_int(), data)
+			_finish_chunk(int(info["cx"]), int(info["cz"]), data)
+		# Tek çağrıda tek chunk: mesh + collision ana thread'i uzun süre tutmaz.
+		return
 
-func _finish_chunk(cx: int, cz: int, data: Dictionary) -> void:
+func _finish_chunk(cx: int, cz: int, data: Dictionary, defer_mesh: bool = false) -> void:
 	var key := VoxelUtil.chunk_key(cx, cz)
 	var chunk := Chunk.new()
 	chunk.setup(cx, cz, data)
 	chunk.apply_edits(SaveSystem.load_chunk(seed, cx, cz))
-	chunk.rebuild()
 	add_child(chunk)
 	chunks[key] = chunk
-	loaded_triangles += chunk.triangle_count
+	if defer_mesh:
+		_dirty[key] = true
+	else:
+		chunk.rebuild()
+		loaded_triangles += chunk.triangle_count
 	chunk_loaded.emit(cx, cz)
+
+func _process_dirty() -> void:
+	if _dirty.is_empty():
+		return
+	var key: String = String(_dirty.keys()[0])
+	_dirty.erase(key)
+	var c: Chunk = chunks.get(key, null) as Chunk
+	if c == null:
+		return
+	c.rebuild()
+	loaded_triangles += c.triangle_count
 
 func get_chunk(gx: int, gz: int) -> Chunk:
 	var key := VoxelUtil.chunk_key(VoxelUtil.world_to_chunk(gx), VoxelUtil.world_to_chunk(gz))
 	return chunks.get(key, null) as Chunk
 
-## Mobil cihazlarda arka plan üretimi gecikebildiği için spawn chunk'ını senkron üretir.
+## Spawn için yalnızca voksel verisini üretir; ağır mesh/collision işini sonraki kareye bırakır.
 func ensure_spawn_chunk() -> void:
 	if get_chunk(0, 0) != null:
 		return
-	var holder: Array = [null]
-	_thread_generate(0, 0, holder)
-	_mutex.lock()
-	var data: Variant = holder[0]
-	_mutex.unlock()
+	var data := _generator_cache.generate(0, 0)
 	if data is Dictionary:
-		_finish_chunk(0, 0, data)
+		_finish_chunk(0, 0, data, true)
 
 func get_block(gx: int, gy: int, gz: int) -> int:
 	if gy < 0 or gy >= VoxelUtil.WORLD_H:
@@ -131,9 +153,9 @@ func set_block(gx: int, gy: int, gz: int, id: int) -> void:
 	c.set_block(VoxelUtil.local(gx), gy, VoxelUtil.local(gz), id)
 
 func rebuild_at(gx: int, gz: int) -> void:
-	var c := get_chunk(gx, gz)
-	if c:
-		c.rebuild()
+	var key := VoxelUtil.chunk_key(VoxelUtil.world_to_chunk(gx), VoxelUtil.world_to_chunk(gz))
+	if chunks.has(key):
+		_dirty[key] = true
 
 func biome_at(gx: int, gz: int) -> int:
 	var c := get_chunk(gx, gz)

@@ -6,15 +6,15 @@ const SETTINGS_PATH := "user://blockverse_settings.cfg"
 const PROFILES: Array = ["Otomatik", "Düşük", "Orta", "Yüksek", "Ultra"]
 
 const PROFILE_DATA: Dictionary = {
-	"Düşük": {"render": 3, "shadow": 0, "bloom": false, "fog": 1, "particles": 0.4, "res": 0.75, "water_refl": false, "msaa": 0, "ai": 3, "fps_cap": 30},
-	"Orta": {"render": 5, "shadow": 1, "bloom": true, "fog": 1, "particles": 0.7, "res": 1.0, "water_refl": false, "msaa": 1, "ai": 5, "fps_cap": 60},
-	"Yüksek": {"render": 8, "shadow": 2, "bloom": true, "fog": 2, "particles": 1.0, "res": 1.0, "water_refl": true, "msaa": 2, "ai": 8, "fps_cap": 60},
-	"Ultra": {"render": 11, "shadow": 2, "bloom": true, "fog": 2, "particles": 1.0, "res": 1.0, "water_refl": true, "msaa": 3, "ai": 10, "fps_cap": 60}
+	"Düşük": {"render": 2, "shadow": 0, "bloom": false, "fog_density": 0.0016, "particles": 0.15, "res": 0.70, "water_refl": false, "msaa": 0, "ai": 2, "fps_cap": 30},
+	"Orta": {"render": 3, "shadow": 0, "bloom": false, "fog_density": 0.0022, "particles": 0.25, "res": 0.85, "water_refl": false, "msaa": 0, "ai": 3, "fps_cap": 30},
+	"Yüksek": {"render": 4, "shadow": 1, "bloom": true, "fog_density": 0.0035, "particles": 0.50, "res": 1.00, "water_refl": true, "msaa": 0, "ai": 4, "fps_cap": 45},
+	"Ultra": {"render": 5, "shadow": 1, "bloom": true, "fog_density": 0.0050, "particles": 0.70, "res": 1.00, "water_refl": true, "msaa": 1, "ai": 6, "fps_cap": 60}
 }
 
 var data: Dictionary = {
 	"profile": "Otomatik",
-	"render_distance": 5,
+	"render_distance": 3,
 	"camera_sensitivity": 0.45,
 	"invert_y": false,
 	"vibration": true,
@@ -36,6 +36,7 @@ var profile_values: Dictionary = {}
 func _ready() -> void:
 	load_settings()
 	resolve_profile()
+	apply_runtime()
 
 func get_v(key: String, fallback: Variant = null) -> Variant:
 	return data.get(key, fallback)
@@ -60,11 +61,9 @@ func load_settings() -> void:
 func detect_profile() -> String:
 	if OS.get_name() != "Android":
 		return "Yüksek"
-	var model := OS.get_model_name().to_lower()
-	if model.contains("note 8") or model.contains("redmi 8") or OS.get_processor_count() <= 4:
+	# Mobilde otomatik profil en fazla Orta olur; cihaz adına göre agresif "Yüksek" seçimi kaldırıldı.
+	if OS.get_processor_count() <= 4:
 		return "Düşük"
-	if model.contains("note 12") or model.contains("note 13") or model.contains("note 14"):
-		return "Yüksek"
 	return "Orta"
 
 func resolve_profile() -> void:
@@ -78,7 +77,21 @@ func resolve_profile() -> void:
 func set_profile(profile: String) -> void:
 	data["profile"] = profile
 	resolve_profile()
+	apply_runtime()
 	save_settings()
+
+## Profil anahtarlarını gerçek çalışma zamanı ayarlarına bağlar.
+func apply_runtime() -> void:
+	if profile_values.is_empty():
+		resolve_profile()
+	Engine.max_fps = clampi(int(profile_values.get("fps_cap", 30)), 20, 60)
+	call_deferred("_apply_viewport_scale", clampf(float(profile_values.get("res", 0.85)), 0.5, 1.0))
+
+func _apply_viewport_scale(scale: float) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	tree.root.scaling_3d_scale = scale
 
 func p(key: String, fallback: Variant = null) -> Variant:
 	if profile_values.is_empty():

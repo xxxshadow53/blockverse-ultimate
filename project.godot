@@ -5,6 +5,7 @@ run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 boot_splash/bg_color=Color(0.015, 0.02, 0.045, 1)
+run/max_fps=30
 
 [autoload]
 GameSettings="*res://scripts/core/game_settings.gd"
@@ -23,14 +24,14 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
 [physics]
-common/physics_ticks_per_second=60
+common/physics_ticks_per_second=30
 3d/run_on_separate_thread=false
 
 [rendering]
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
 environment/defaults/default_clear_color=Color(0.28, 0.48, 0.72, 1)
-anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/msaa_3d=0
 textures/vram_compression/import_etc2=true
 textures/vram_compression/import_etc2_astc=true
 

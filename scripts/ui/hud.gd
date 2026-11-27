@@ -18,6 +18,11 @@ var slot_panels: Array[Panel] = []
 var slot_labels: Array[Label] = []
 var _toast_time := 0.0
 var _last_selected := -1
+var _tick_timer := 0.0
+var _minimap_ready := false
+var _hotbar_signature := ""
+
+const WEATHER_NAMES := {"clear": "Açık", "rain": "Yağmur", "snow": "Kar", "storm": "Fırtına"}
 
 const SHORT := {
 	BlockDefs.STONE: "TAŞ", BlockDefs.DIRT: "TOP", BlockDefs.COBBLESTONE: "KIR",
@@ -148,6 +153,16 @@ func _build_crosshair() -> void:
 	root.add_child(cross)
 
 func tick(delta: float, player: Player, world: VoxelWorld, env: WorldEnvironmentController, fps: float, quest: String) -> void:
+	minimap.visible = bool(GameSettings.get_v("minimap_visible", true))
+	if minimap.visible:
+		if not _minimap_ready:
+			minimap.setup(player, world)
+			_minimap_ready = true
+		minimap.tick(delta)
+	_tick_timer -= delta
+	if _tick_timer > 0.0:
+		return
+	_tick_timer = 0.12
 	health_bar.max_value = player.max_health
 	health_bar.value = player.health
 	energy_bar.max_value = player.max_energy
@@ -155,22 +170,19 @@ func tick(delta: float, player: Player, world: VoxelWorld, env: WorldEnvironment
 	xp_bar.value = player.xp / maxf(1.0, float(player.level) * 40.0) * 100.0
 	level_label.text = "Seviye %d" % player.level
 	time_label.text = "Saat " + env.time_string()
-	var weather_names := {"clear": "Açık", "rain": "Yağmur", "snow": "Kar", "storm": "Fırtına"}
-	weather_label.text = "Hava: " + String(weather_names.get(env.weather, "Açık"))
+	weather_label.text = "Hava: " + String(WEATHER_NAMES.get(env.weather, "Açık"))
 	fps_label.visible = bool(GameSettings.get_v("fps_visible", true))
 	fps_label.text = "FPS %d  |  Chunk %d" % [int(fps), world.chunks.size()]
 	quest_label.text = quest
-	minimap.visible = bool(GameSettings.get_v("minimap_visible", true))
-	if minimap.visible:
-		minimap.setup(player, world)
-		minimap.tick(delta)
-	if player.inventory.selected != _last_selected:
+	var sig := "%d:%d" % [player.inventory.selected, player.inventory.selected_count()]
+	for i in range(9):
+		sig += "|%d:%d" % [int(player.inventory.slots[i].get("id", 0)), int(player.inventory.slots[i].get("count", 0))]
+	if sig != _hotbar_signature:
+		_hotbar_signature = sig
 		_last_selected = player.inventory.selected
 		_update_hotbar(player)
-	elif player.inventory.selected_count() <= 1:
-		_update_hotbar(player)
 	if _toast_time > 0.0:
-		_toast_time -= delta
+		_toast_time -= 0.12
 		toast_label.modulate.a = clampf(_toast_time, 0.0, 1.0)
 		if _toast_time <= 0.0:
 			toast_label.text = ""

@@ -28,6 +28,8 @@ var kb_axis := Vector2.ZERO
 var run_held := false
 var jump_held := false
 var target: Dictionary = {}
+var _edit_queue: Array[String] = []
+var _ray_timer := 0.0
 var invuln := 0.0
 var ability_cooldown := 0.0
 var action_cooldown := 0.0
@@ -72,7 +74,7 @@ func setup(game_ref: Node, world_ref: VoxelWorld, char_index: int) -> void:
 	camera.name = "PlayerCamera"
 	camera.fov = 68.0
 	camera.near = 0.05
-	camera.far = 600.0
+	camera.far = 280.0
 	spring.add_child(camera)
 	camera.make_current()
 	var hm := StandardMaterial3D.new()
@@ -98,6 +100,7 @@ func set_active(value: bool) -> void:
 		kb_axis = Vector2.ZERO
 		run_held = false
 		jump_held = false
+		_edit_queue.clear()
 
 func set_move_axis(value: Vector2) -> void:
 	move_axis = value.limit_length(1.0)
@@ -113,8 +116,13 @@ func press(action: String) -> void:
 		"jump": jump_held = true
 		"run": run_held = true
 		"attack": _attack()
-		"break": _break_block()
-		"place": _place_block()
+		# Kır/koyma dokunma olayında chunk yeniden meshlemez; sonraki kareye kuyruklanır.
+		"break":
+			if _edit_queue.size() < 2:
+				_edit_queue.append("break")
+		"place":
+			if _edit_queue.size() < 2:
+				_edit_queue.append("place")
 		"ability": _ability()
 		"camera": toggle_camera()
 		"inventory": game.toggle_inventory()
@@ -246,6 +254,24 @@ func _process(delta: float) -> void:
 		rig.visible = stealth_time <= 0.0 or fmod(stealth_time * 6.0, 1.0) > 0.35
 	else:
 		rig.visible = true
+	_ray_timer -= delta
+	if _ray_timer <= 0.0:
+		_ray_timer = 0.08
+		_refresh_target()
+	flush_edits()
+
+## Kuyruktaki kır/koyma işlemlerini işler. refresh=false testlerde hedefi korur.
+func flush_edits(refresh: bool = true) -> void:
+	while not _edit_queue.is_empty():
+		var action: String = String(_edit_queue.pop_front())
+		if refresh:
+			_refresh_target()
+		if action == "break":
+			_break_block()
+		elif action == "place":
+			_place_block()
+
+func _refresh_target() -> void:
 	target = world.raycast(camera.global_position, -camera.global_transform.basis.z, 6.5)
 	if target.get("hit", false):
 		var b: Vector3i = target["block"]
