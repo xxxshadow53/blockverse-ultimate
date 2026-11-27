@@ -1,0 +1,24 @@
+# Godot 4
+.godot/
+*.tmp
+
+# Derleme çıktıları
+builds/
+*.apk
+*.aab
+export_presets.cfg.user
+
+# Yerel kimlik bilgileri (asla depoya eklenmez)
+*.keystore
+*.jks
+*.p12
+local.properties
+secrets.*
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Geçici test çıktıları
+tests/*.log

@@ -1,0 +1,39 @@
+[application]
+config/name="BLOCKVERSE – Ultimate Edition"
+description="Prosedürel açık dünya voxel macera oyunu – Android Vertical Slice"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.015, 0.02, 0.045, 1)
+
+[autoload]
+GameSettings="*res://scripts/core/game_settings.gd"
+SaveSystem="*res://scripts/core/save_system.gd"
+AudioLibrary="*res://scripts/core/audio_library.gd"
+TextureFactory="*res://scripts/core/texture_factory.gd"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/resizable=true
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/handheld/orientation=0
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+common/physics_ticks_per_second=60
+3d/run_on_separate_thread=false
+
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+environment/defaults/default_clear_color=Color(0.28, 0.48, 0.72, 1)
+anti_aliasing/quality/msaa_3d=1
+
+[audio]
+buses/default_bus_layout=""
+
+[editor]
+export/save_on_export_all=false
