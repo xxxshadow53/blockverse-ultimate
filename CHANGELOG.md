@@ -10,3 +10,5 @@
 - Gerçek oyun oturumu smoke testi eklendi: dünya, spawn, kırma/koyma, savaş, üretim, kayıt ve menüler (14 kontrol).
 - Gerçek çalışan oyundan 4 ekran görüntüsü alındı (`screenshots/`).
 - Android ARM64 debug APK export preset'i ve GitHub Actions iş akışı eklendi.
+- Android export için ETC2/ASTC doku sıkıştırması etkinleştirildi; ARM64 debug APK yerel olarak derlenip `apksigner` ile doğrulandı.
+
