@@ -2,6 +2,7 @@ extends Node
 
 ## Gerçek çalışan oyundan ekran görüntüsü alır (sahte görsel kullanılmaz).
 const OUT_DIR := "res://screenshots"
+var _saved := 0
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
@@ -19,11 +20,20 @@ func _ready() -> void:
 	main._start_game()
 	await get_tree().create_timer(8.0).timeout
 	_capture("04_oyun_ici.png")
-	print("CAPTURE: 4 ekran görüntüsü kaydedildi")
+	print("CAPTURE: ", _saved, "/4 ekran görüntüsü kaydedildi")
 	get_tree().quit()
 
 func _capture(name: String) -> void:
-	var img := get_viewport().get_texture().get_image()
+	var tex := get_viewport().get_texture()
+	if tex == null:
+		push_error("CAPTURE: viewport texture null -> " + name)
+		return
+	var img := tex.get_image()
+	if img == null:
+		push_error("CAPTURE: viewport image null -> " + name)
+		return
 	var path := ProjectSettings.globalize_path(OUT_DIR.path_join(name))
 	var err := img.save_png(path)
+	if err == OK:
+		_saved += 1
 	print("CAPTURE ", name, " -> ", path, " err=", err)

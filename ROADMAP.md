@@ -20,6 +20,9 @@ Doğrulanmadan tamamlandığı iddia edilen hiçbir özellik burada listelenmez.
   ARM64 (`arm64-v8a`) native kütüphane, `com.blockverse.ultimate`, sürüm `1.0.0-demo`,
   yalnızca `VIBRATE` izni (INTERNET izni yok), v2/v3 imza şemaları geçerli.
   CI çalıştırması başarılı (`success`) ve artifact indirilerek aynı APK doğrulandı.
+- Mobil performans ayarları bağlandı: varsayılan Orta profilde 3 chunk (~37), 30 FPS sınırı,
+  0.85 çözünürlük ölçeği, kapalı gölge/bloom, 5 Hz ışık güncellemesi ve kuyruklu kır/koyma.
+  Gerçek cihaz FPS/termal ölçümü hâlâ yapılmadı; iddia edilmiyor.
 
 ## Planlanan (henüz yapılmadı)
 

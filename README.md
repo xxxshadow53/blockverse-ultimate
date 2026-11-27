@@ -26,7 +26,10 @@ Bunlar çalışan oyundan alınmış gerçek görüntülerdir (`tests/capture.ts
 - **Sistem:** kayıt/yükleme, Türkçe menüler, grafik/ses/kontrol ayarları, FPS sayacı, mini harita.
 
 Eksikler ve planlananlar açıkça [`ROADMAP.md`](ROADMAP.md) içinde listelenmiştir.
-Gerçek cihaz FPS ölçümü yapılmadığı için performans iddiası bulunmaz.
+Mobil varsayılan profil kasmayı azaltacak şekilde ayarlanmıştır: 3 chunk (~37), 30 FPS sınırı,
+0.85 çözünürlük ölçeği, kapalı gölge/bloom ve seyreltilmiş HUD/ışık güncellemeleri.
+Kır/koyma dokunuşu chunk yeniden meshlemesini sonraki kareye erteler. Ayarlar menüsünden
+Düşük/Ultra profilleri seçilebilir; gerçek cihaz FPS ölçümü yapılmadığı için sayısal performans iddiası yoktur.
 
 ## Çalıştırma
 
@@ -78,7 +81,7 @@ Yerel derleme için Godot export şablonları, JDK 17 ve Android SDK gerekir; ar
 komutu kullanılabilir.
 
 Bu depoda yerel derleme ve GitHub Actions derlemesi gerçekten yapıldı ve doğrulandı:
-çıktı `BlockVerse-Ultimate-Demo.apk` (28.545.598 bayt), `arm64-v8a` native kütüphane içeriyor,
+çıktı `BlockVerse-Ultimate-Demo.apk` (28.553.790 bayt), `arm64-v8a` native kütüphane içeriyor,
 `apksigner` ile v2/v3 imzası geçerli ve INTERNET izni bulunmuyor. GitHub deposu:
 [xxxshadow53/blockverse-ultimate](https://github.com/xxxshadow53/blockverse-ultimate).
 CI çıktısını indirmek için deponun **Actions** sekmesinde başarılı çalıştırmayı açıp

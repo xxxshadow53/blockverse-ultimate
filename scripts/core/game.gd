@@ -117,6 +117,8 @@ func _process(delta: float) -> void:
 	hud.tick(delta, player, world, environment, _fps_smooth, _quest)
 
 func _apply_dynamic_resolution(fps: float) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return

@@ -88,6 +88,8 @@ func apply_runtime() -> void:
 	call_deferred("_apply_viewport_scale", clampf(float(profile_values.get("res", 0.85)), 0.5, 1.0))
 
 func _apply_viewport_scale(scale: float) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return
