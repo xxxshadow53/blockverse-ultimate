@@ -65,7 +65,7 @@ jobs:
         run: godot --headless --path . --scene res://tests/validate.tscn
 
       - name: Doğrulama (smoke test)
-        run: godot --headless --path . --scene res://tests/smoke_test.tscn
+        run: timeout 180 godot --headless --path . --scene res://tests/smoke_test.tscn
 
       - name: ARM64 debug APK derle
         run: |

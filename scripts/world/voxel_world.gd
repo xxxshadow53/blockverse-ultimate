@@ -17,7 +17,7 @@ var _mutex := Mutex.new()
 
 func setup(world_seed: int, distance: int) -> void:
 	seed = world_seed
-	render_distance = clampi(distance, 2, 14)
+	render_distance = clampi(distance, 1, 14)
 	_generator_cache = WorldGenerator.new(seed)
 
 func _process(delta: float) -> void:

@@ -6,7 +6,7 @@ var game: Game
 var checks := 0
 
 func _ready() -> void:
-	GameSettings.set_v("render_distance", 2)
+	GameSettings.set_v("render_distance", 1)
 	game = Game.new()
 	add_child(game)
 	game.world_ready.connect(_on_ready)
