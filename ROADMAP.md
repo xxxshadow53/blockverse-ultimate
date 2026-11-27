@@ -16,6 +16,9 @@ Doğrulanmadan tamamlandığı iddia edilen hiçbir özellik burada listelenmez.
 - Grafik profilleri (Düşük/Orta/Yüksek-Ultra/Otomatik), ses ve kontrol ayarları.
 - Başsız smoke test: 14/14 kontrol geçiyor (bkz. `tests/smoke_test.gd`).
 - Gerçek çalışan oyundan alınmış ekran görüntüleri: `screenshots/`.
+- `BlockVerse-Ultimate-Demo.apk` yerel olarak derlenip `apksigner` ile doğrulandı:
+  ARM64 (`arm64-v8a`) native kütüphane, `com.blockverse.ultimate`, sürüm `1.0.0-demo`,
+  yalnızca `VIBRATE` izni (INTERNET izni yok), v2/v3 imza şemaları geçerli.
 
 ## Planlanan (henüz yapılmadı)
 
@@ -31,7 +34,7 @@ Doğrulanmadan tamamlandığı iddia edilen hiçbir özellik burada listelenmez.
 
 ## Bilinen kısıtlar
 
-- Export şablonları olmadan yerel APK derlenemez; GitHub Actions iş akışı şablonları CI'da indirir.
+- Yerel APK derlemesi Godot export şablonları, JDK 17 ve Android SDK gerektirir; GitHub Actions iş akışı bunları CI'da kurar.
 - Debug keystore yalnızca CI sırasında `keytool` ile üretilir; depoda gizli anahtar/keystore bulunmaz.
 - Oyun çevrimdışıdır; internet izni kapalıdır, zorunlu API/abonelik yoktur.
 - ObjectDB sızıntısı uyarısı yalnızca headless test sürecinin kapanışında görünür; oyun oturumunu etkilemez.

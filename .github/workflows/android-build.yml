@@ -22,11 +22,15 @@ jobs:
           java-version: '17'
 
       - name: Gerekli SDK paketleri
-        # GitHub-hosted runner'larda Android SDK ve sdkmanager hazır gelir.
+        # GitHub-hosted runner'larda Android SDK hazır gelir; sdkmanager PATH'te olmayabilir.
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.1"
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          if [ -z "$SDKMANAGER" ]; then echo "sdkmanager bulunamadı: $ANDROID_HOME" >&2; exit 1; fi
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.1"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
 
       - name: Godot 4.7.2-stable (Linux)
         run: |
