@@ -11,4 +11,5 @@
 - Gerçek çalışan oyundan 4 ekran görüntüsü alındı (`screenshots/`).
 - Android ARM64 debug APK export preset'i ve GitHub Actions iş akışı eklendi.
 - Android export için ETC2/ASTC doku sıkıştırması etkinleştirildi; ARM64 debug APK yerel olarak derlenip `apksigner` ile doğrulandı.
+- GitHub Actions ARM64 APK iş akışı düzeltildi (SDK yolu, temiz checkout için Godot import); başarılı CI çalıştırmasından `BlockVerse-Ultimate-Demo.apk` artifact'ı indirilip doğrulandı.
 

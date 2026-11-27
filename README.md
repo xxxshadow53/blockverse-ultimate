@@ -77,12 +77,14 @@ Yerel derleme için Godot export şablonları, JDK 17 ve Android SDK gerekir; ar
 `godot --headless --path . --export-debug "Android ARM64 (Debug)" "builds/BlockVerse-Ultimate-Demo.apk"`
 komutu kullanılabilir.
 
-Bu depoda yerel derleme gerçekten yapıldı ve doğrulandı: çıktı `builds/BlockVerse-Ultimate-Demo.apk`
-(yaklaşık 28.5 MB), `arm64-v8a` native kütüphane içeriyor, `apksigner` ile v2/v3 imzası geçerli
-ve INTERNET izni bulunmuyor. GitHub deposu:
+Bu depoda yerel derleme ve GitHub Actions derlemesi gerçekten yapıldı ve doğrulandı:
+çıktı `BlockVerse-Ultimate-Demo.apk` (28.545.598 bayt), `arm64-v8a` native kütüphane içeriyor,
+`apksigner` ile v2/v3 imzası geçerli ve INTERNET izni bulunmuyor. GitHub deposu:
 [xxxshadow53/blockverse-ultimate](https://github.com/xxxshadow53/blockverse-ultimate).
-CI çıktısını indirmek için deponun **Actions** sekmesinde ilgili çalıştırmayı açıp
+CI çıktısını indirmek için deponun **Actions** sekmesinde başarılı çalıştırmayı açıp
 **Artifacts → BlockVerse-Ultimate-Demo** dosyasını indirin; ZIP içindeki APK'yı cihaza kurabilirsiniz.
+Doğrudan artifact bağlantısı (GitHub oturumu gerekebilir):
+[ artifact indir ](https://github.com/xxxshadow53/blockverse-ultimate/actions/runs/46023922563/artifacts/15212345708).
 
 ## Proje yapısı
 

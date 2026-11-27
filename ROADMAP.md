@@ -16,9 +16,10 @@ Doğrulanmadan tamamlandığı iddia edilen hiçbir özellik burada listelenmez.
 - Grafik profilleri (Düşük/Orta/Yüksek-Ultra/Otomatik), ses ve kontrol ayarları.
 - Başsız smoke test: 14/14 kontrol geçiyor (bkz. `tests/smoke_test.gd`).
 - Gerçek çalışan oyundan alınmış ekran görüntüleri: `screenshots/`.
-- `BlockVerse-Ultimate-Demo.apk` yerel olarak derlenip `apksigner` ile doğrulandı:
+- `BlockVerse-Ultimate-Demo.apk` hem yerel hem GitHub Actions CI'da derlenip `apksigner` ile doğrulandı:
   ARM64 (`arm64-v8a`) native kütüphane, `com.blockverse.ultimate`, sürüm `1.0.0-demo`,
   yalnızca `VIBRATE` izni (INTERNET izni yok), v2/v3 imza şemaları geçerli.
+  CI çalıştırması başarılı (`success`) ve artifact indirilerek aynı APK doğrulandı.
 
 ## Planlanan (henüz yapılmadı)
 
