@@ -83,7 +83,7 @@ void fragment() {
 	_cloud_material = mat
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 8181
-	for i in range(7):
+	for i in range(int(GameSettings.p("clouds", 7))):
 		var plane := PlaneMesh.new()
 		plane.size = Vector2(rng.randf_range(80, 160), rng.randf_range(60, 120))
 		var mi := MeshInstance3D.new()

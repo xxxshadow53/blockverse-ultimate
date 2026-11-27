@@ -26,7 +26,7 @@ func tick(delta: float) -> void:
 	update_timer -= delta
 	if update_timer > 0.0 or player == null or world == null:
 		return
-	update_timer = 1.0
+	update_timer = clampf(float(GameSettings.p("minimap_interval", 1.0)), 0.5, 3.0)
 	_refresh()
 
 func _refresh() -> void:

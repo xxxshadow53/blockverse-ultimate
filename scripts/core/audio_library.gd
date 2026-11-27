@@ -1,7 +1,7 @@
 extends Node
 
 ## Tamamen üretilmiş (prosedürel) sesler – harici lisanslı dosya gerekmez.
-const RATE := 22050
+const RATE := 16000
 
 var streams: Dictionary = {}
 var music_player: AudioStreamPlayer
@@ -87,10 +87,10 @@ func _build_streams() -> void:
 	streams["death"] = _synth(0.7, "death", false)
 	streams["splash"] = _synth(0.4, "splash", false)
 	streams["unlock"] = _synth(0.8, "unlock", false)
-	streams["wind"] = _synth(3.0, "wind", true)
-	streams["water"] = _synth(3.0, "water", true)
-	streams["rain"] = _synth(3.0, "rain", true)
-	streams["music"] = _synth(12.0, "music", true)
+	streams["wind"] = _synth(2.0, "wind", true)
+	streams["water"] = _synth(2.0, "water", true)
+	streams["rain"] = _synth(2.0, "rain", true)
+	streams["music"] = _synth(8.0, "music", true)
 
 func _synth(duration: float, kind: String, looping: bool) -> AudioStreamWAV:
 	var count := int(duration * RATE)

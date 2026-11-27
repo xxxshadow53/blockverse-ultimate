@@ -6,10 +6,10 @@ const SETTINGS_PATH := "user://blockverse_settings.cfg"
 const PROFILES: Array = ["Otomatik", "Düşük", "Orta", "Yüksek", "Ultra"]
 
 const PROFILE_DATA: Dictionary = {
-	"Düşük": {"render": 2, "shadow": 0, "bloom": false, "fog_density": 0.0016, "particles": 0.15, "res": 0.70, "water_refl": false, "msaa": 0, "ai": 2, "fps_cap": 30},
-	"Orta": {"render": 3, "shadow": 0, "bloom": false, "fog_density": 0.0022, "particles": 0.25, "res": 0.85, "water_refl": false, "msaa": 0, "ai": 3, "fps_cap": 30},
-	"Yüksek": {"render": 4, "shadow": 1, "bloom": true, "fog_density": 0.0035, "particles": 0.50, "res": 1.00, "water_refl": true, "msaa": 0, "ai": 4, "fps_cap": 45},
-	"Ultra": {"render": 5, "shadow": 1, "bloom": true, "fog_density": 0.0050, "particles": 0.70, "res": 1.00, "water_refl": true, "msaa": 1, "ai": 6, "fps_cap": 60}
+	"Düşük": {"render": 1, "shadow": 0, "bloom": false, "fog_density": 0.0, "particles": 0, "res": 0.60, "water_refl": false, "msaa": 0, "ai": 1, "fps_cap": 24, "normal_map": false, "clouds": 0, "stream_interval": 0.5, "hud_interval": 0.2, "minimap_interval": 2.0},
+	"Orta": {"render": 2, "shadow": 0, "bloom": false, "fog_density": 0.0015, "particles": 0.10, "res": 0.75, "water_refl": false, "msaa": 0, "ai": 2, "fps_cap": 30, "normal_map": true, "clouds": 3, "stream_interval": 0.4, "hud_interval": 0.15, "minimap_interval": 1.5},
+	"Yüksek": {"render": 3, "shadow": 0, "bloom": false, "fog_density": 0.0025, "particles": 0.25, "res": 0.90, "water_refl": false, "msaa": 0, "ai": 3, "fps_cap": 40, "normal_map": true, "clouds": 5, "stream_interval": 0.35, "hud_interval": 0.12, "minimap_interval": 1.0},
+	"Ultra": {"render": 4, "shadow": 1, "bloom": true, "fog_density": 0.0040, "particles": 0.50, "res": 1.00, "water_refl": true, "msaa": 1, "ai": 4, "fps_cap": 60, "normal_map": true, "clouds": 7, "stream_interval": 0.3, "hud_interval": 0.10, "minimap_interval": 0.8}
 }
 
 var data: Dictionary = {
@@ -61,23 +61,41 @@ func load_settings() -> void:
 func detect_profile() -> String:
 	if OS.get_name() != "Android":
 		return "Yüksek"
-	# Mobilde otomatik profil en fazla Orta olur; cihaz adına göre agresif "Yüksek" seçimi kaldırıldı.
-	if OS.get_processor_count() <= 4:
+	if _is_low_end_device():
 		return "Düşük"
 	return "Orta"
 
+## SM200/SM-T200 gibi zayıf Samsung tabletlerinde üst profilleri zorla kapatır.
+func _is_low_end_device() -> bool:
+	if OS.get_name() != "Android":
+		return false
+	var raw := OS.get_model_name().to_lower()
+	var model := raw.replace("-", "").replace("_", "").replace(" ", "")
+	# SM-S200 / SM-X200 / SM-T200 ve benzerleri; tire alt çizgi fark etmez.
+	if model.begins_with("sm") and model.contains("200"):
+		return true
+	if model.contains("smt580") or model.contains("smt550") or model.contains("smt530") or model.contains("smt230"):
+		return true
+	if raw.contains("tab") or model.contains("taba"):
+		return true
+	return OS.get_processor_count() <= 4
+
 func resolve_profile() -> void:
 	var requested := String(data.get("profile", "Otomatik"))
-	active_profile = detect_profile() if requested == "Otomatik" else requested
+	if _is_low_end_device():
+		active_profile = "Düşük"
+	else:
+		active_profile = detect_profile() if requested == "Otomatik" else requested
 	if not PROFILE_DATA.has(active_profile):
-		active_profile = "Orta"
+		active_profile = "Düşük"
 	profile_values = PROFILE_DATA[active_profile]
-	data["render_distance"] = int(profile_values.get("render", 5))
+	data["render_distance"] = int(profile_values.get("render", 1))
 
 func set_profile(profile: String) -> void:
 	data["profile"] = profile
 	resolve_profile()
 	apply_runtime()
+	TextureFactory.apply_quality()
 	save_settings()
 
 ## Profil anahtarlarını gerçek çalışma zamanı ayarlarına bağlar.

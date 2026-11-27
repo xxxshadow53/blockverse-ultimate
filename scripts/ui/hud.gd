@@ -162,7 +162,8 @@ func tick(delta: float, player: Player, world: VoxelWorld, env: WorldEnvironment
 	_tick_timer -= delta
 	if _tick_timer > 0.0:
 		return
-	_tick_timer = 0.12
+	var step := clampf(float(GameSettings.p("hud_interval", 0.12)), 0.05, 0.5)
+	_tick_timer = step
 	health_bar.max_value = player.max_health
 	health_bar.value = player.health
 	energy_bar.max_value = player.max_energy
@@ -182,7 +183,7 @@ func tick(delta: float, player: Player, world: VoxelWorld, env: WorldEnvironment
 		_last_selected = player.inventory.selected
 		_update_hotbar(player)
 	if _toast_time > 0.0:
-		_toast_time -= 0.12
+		_toast_time -= step
 		toast_label.modulate.a = clampf(_toast_time, 0.0, 1.0)
 		if _toast_time <= 0.0:
 			toast_label.text = ""

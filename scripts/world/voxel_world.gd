@@ -25,7 +25,7 @@ func _process(delta: float) -> void:
 	_update_timer -= delta
 	if _update_timer > 0.0:
 		return
-	_update_timer = 0.35
+	_update_timer = clampf(float(GameSettings.p("stream_interval", 0.35)), 0.2, 1.0)
 	# Kare başına en fazla bir chunk bitirilir; dokunma/input kuyruğu bloke olmaz.
 	_collect_tasks()
 	_process_dirty()
@@ -52,8 +52,9 @@ func _stream() -> void:
 			missing.append([dx * dx + dz * dz, ccx + dx, ccz + dz, key])
 	# Önce oyuncuya en yakın chunk'lar üretilir; arka planda en fazla 2 iş bekler.
 	missing.sort_custom(func(a, b): return int(a[0]) < int(b[0]))
+	var max_pending := 1 if render_distance <= 2 else 2
 	for item in missing:
-		if pending.size() >= 2:
+		if pending.size() >= max_pending:
 			break
 		_start_task(int(item[1]), int(item[2]), String(item[3]))
 	for key in chunks.keys():

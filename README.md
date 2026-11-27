@@ -30,6 +30,8 @@ Mobil varsayılan profil kasmayı azaltacak şekilde ayarlanmıştır: 3 chunk (
 0.85 çözünürlük ölçeği, kapalı gölge/bloom ve seyreltilmiş HUD/ışık güncellemeleri.
 Kır/koyma dokunuşu chunk yeniden meshlemesini sonraki kareye erteler. Ayarlar menüsünden
 Düşük/Ultra profilleri seçilebilir; gerçek cihaz FPS ölçümü yapılmadığı için sayısal performans iddiası yoktur.
+Samsung SM-S200 / SM-X200 / SM-T200 gibi zayıf tabletlerde oyun kendi kendini **Düşük** profiline zorlar:
+9 chunk, 24 FPS, 0.60 çözünürlük, sis/bulut/parçacık/normal harita kapalı ve tek düşman.
 
 ## Çalıştırma
 

@@ -13,4 +13,5 @@
 - Android export için ETC2/ASTC doku sıkıştırması etkinleştirildi; ARM64 debug APK yerel olarak derlenip `apksigner` ile doğrulandı.
 - GitHub Actions ARM64 APK iş akışı düzeltildi (SDK yolu, temiz checkout için Godot import); başarılı CI çalıştırmasından `BlockVerse-Ultimate-Demo.apk` artifact'ı indirilip doğrulandı.
 - Mobil kasma düzeltmeleri: kır/koyma dokunuşu artık chunk rebuild'ini kuyruğa alıyor; görünür chunk sayısı 97→37, fizik 60→30 Hz, gölge/bloom varsayılan kapalı, ışık/HUD/minimap güncellemeleri seyreltildi, doku atlası tek seferde ham bayt yazımıyla üretiliyor.
+- Samsung SM-S200 / SM-X200 / SM-T200 ve benzer zayıf tabletler için otomatik olarak en hafif profil zorlanıyor: 9 chunk, 24 FPS, 0.60 ölçek, sis/bulut/parçacık/normal harita kapalı, 1 düşman; ses sentezi de kısaltıldı.
 

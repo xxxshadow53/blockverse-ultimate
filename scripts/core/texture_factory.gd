@@ -24,6 +24,17 @@ func _ready() -> void:
 	water_material = _make_water_material()
 	cloud_texture = _build_cloud_texture()
 	particle_texture = _build_particle_texture()
+	apply_quality()
+
+## Düşük profilde normal haritayı kaldırır; zayıf GPU'da en pahalı doku okuması budur.
+func apply_quality() -> void:
+	if solid_material == null:
+		return
+	var use_normal := bool(GameSettings.p("normal_map", true))
+	solid_material.normal_texture = normal_atlas if use_normal else null
+	solid_material.normal_scale = 0.85 if use_normal else 0.0
+	if water_material:
+		water_material.set_shader_parameter("reflection", 0.25 if bool(GameSettings.p("water_refl", false)) else 0.0)
 
 func process(delta: float) -> void:
 	_time += delta

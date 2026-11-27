@@ -256,7 +256,7 @@ func _process(delta: float) -> void:
 		rig.visible = true
 	_ray_timer -= delta
 	if _ray_timer <= 0.0:
-		_ray_timer = 0.08
+		_ray_timer = 0.15 if int(GameSettings.p("render", 3)) <= 2 else 0.08
 		_refresh_target()
 	flush_edits()
 

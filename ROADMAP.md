@@ -23,6 +23,7 @@ Doğrulanmadan tamamlandığı iddia edilen hiçbir özellik burada listelenmez.
 - Mobil performans ayarları bağlandı: varsayılan Orta profilde 3 chunk (~37), 30 FPS sınırı,
   0.85 çözünürlük ölçeği, kapalı gölge/bloom, 5 Hz ışık güncellemesi ve kuyruklu kır/koyma.
   Gerçek cihaz FPS/termal ölçümü hâlâ yapılmadı; iddia edilmiyor.
+- SM-S200 / SM-X200 / SM-T200 algılandığında üst profiller kapatılır ve 9 chunk / 24 FPS / 0.60 ölçeklik hafif profil uygulanır.
 
 ## Planlanan (henüz yapılmadı)
 

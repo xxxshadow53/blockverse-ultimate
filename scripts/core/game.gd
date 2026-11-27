@@ -107,7 +107,7 @@ func _process(delta: float) -> void:
 		environment.follow(player.global_position)
 		_spawn_timer -= delta
 		if _spawn_timer <= 0.0:
-			_spawn_timer = 9.0 if OS.get_name() == "Android" else 3.2
+			_spawn_timer = 14.0 if int(GameSettings.p("ai", 3)) <= 1 else (9.0 if OS.get_name() == "Android" else 3.2)
 			_try_spawn()
 		_save_timer -= delta
 		if _save_timer <= 0.0:
@@ -125,8 +125,8 @@ func _apply_dynamic_resolution(fps: float) -> void:
 	var vp := tree.root
 	var target := clampf(float(GameSettings.p("res", 0.85)), 0.5, 1.0)
 	var current := vp.scaling_3d_scale
-	if fps < 24.0 and current > 0.55:
-		vp.scaling_3d_scale = maxf(0.55, current - 0.05)
+	if fps < 24.0 and current > 0.45:
+		vp.scaling_3d_scale = maxf(0.45, current - 0.05)
 	elif fps > 45.0 and current < target:
 		vp.scaling_3d_scale = minf(target, current + 0.03)
 
