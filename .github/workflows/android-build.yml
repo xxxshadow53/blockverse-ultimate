@@ -61,6 +61,10 @@ jobs:
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
 
+      - name: Godot import (global sınıf önbelleği)
+        # Temiz checkout'ta .godot/ yok; class_name'ler bu taramadan sonra tanınır.
+        run: godot --headless --path . --editor --quit
+
       - name: Doğrulama (GDScript)
         run: godot --headless --path . --scene res://tests/validate.tscn
 
